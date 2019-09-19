@@ -101,7 +101,7 @@ func CreateImages() {
     draw.Draw(canvas, b, img1, image.ZP, draw.Src)
     draw.Draw(canvas, img2.Bounds().Add(offset), img2, image.ZP, draw.Over)
 
-	out, err := os.Create("./output.jpg")
+	out, err := os.Create("./reset.jpg")
 	if err != nil {
 		fmt.Println(err)
 	}
