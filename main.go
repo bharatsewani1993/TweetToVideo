@@ -8,7 +8,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
+	"image"
+	"image/draw"
+	"image/jpeg"
+	"image/png"
 	"github.com/ChimeraCoder/anaconda"
 )
 
@@ -76,9 +79,49 @@ func IsURL(str string) bool {
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
+//CreateImages create images for video
+func CreateImages() {
+	backGround, err := os.Open("background.png")
+	profilepic, err := os.Open("profilepic.jpg")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	img1, err := png.Decode(backGround)
+	img2, err := jpeg.Decode(profilepic)
+
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	offset := image.Pt(300, 200)
+    b := img1.Bounds()
+    canvas := image.NewRGBA(b)
+    draw.Draw(canvas, b, img1, image.ZP, draw.Src)
+    draw.Draw(canvas, img2.Bounds().Add(offset), img2, image.ZP, draw.Over)
+
+	out, err := os.Create("./output.jpg")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var opt jpeg.Options
+	opt.Quality = 80
+
+	jpeg.Encode(out, canvas, &opt) 
+}
+
 func main() {
-	api := TwitterLogin()
-	tweeturl := GetTweetURL()
-	tweet := GetTweet(tweeturl, api)
-	fmt.Println(tweet.Text)
+	//	api := TwitterLogin()
+	//	tweeturl := GetTweetURL()
+	//	tweet := GetTweet(tweeturl, api)
+	//fmt.Println(tweet.Text)
+
+	text := "My Name is Bharat and I am a Programmer."
+	fmt.Println(text)
+
+	CreateImages()
+	fmt.Println("image created")
+
 }
