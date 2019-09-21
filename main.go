@@ -20,7 +20,7 @@ import (
 	"golang.org/x/image/font/basicfont"
     "golang.org/x/image/font/inconsolata"
 	"golang.org/x/image/math/fixed"
-	"reflect"
+//	"reflect"
 )
 
 //TwitterLogin is used for authentication purpose
@@ -180,31 +180,50 @@ func CreateImages() {
     draw.Draw(canvas, b, backGroundd, image.ZP, draw.Src)
     draw.Draw(canvas, roundpicd.Bounds().Add(offset), roundpicd, image.ZP, draw.Over)
 
-	//Write text on Image
-	//set font color
-	col := color.RGBA{0, 0, 0, 255}
-	AddLabel(canvas, 360, 215, "Bharat Sewani",inconsolata.Bold8x16,col)
-	col = color.RGBA{0, 0, 0, 150}
-	AddLabel(canvas, 360, 230, "@bharatsewani199",inconsolata.Regular8x16,col)
-	col = color.RGBA{0, 0, 0, 255}
-	AddLabel(canvas, 310, 270, "No matter how far you have gone on the wrong road,",inconsolata.Bold8x16,col)
-	AddLabel(canvas, 310, 290, "You can still turn around.",inconsolata.Bold8x16,col)
-	col = color.RGBA{27,149,224,255}
-	AddLabel(canvas, 310, 310, "#TuesdayMotivation",inconsolata.Bold8x16,col)
-	col = color.RGBA{0, 0, 0, 150}
-	AddLabel(canvas, 310, 340, "9:00 AM . Jul 31, 2018",inconsolata.Regular8x16,col)
+	//Write text on Image	
 
-//	fmt.Println(reflect.TypeOf(inconsolata.Regular8x16))
+	s := make([]string, 12)
+    s[0] = "a"
+    s[1] = "b"
+	s[2] = "c"
+	s[3] = "d"
+    s[4] = "e"
+	s[5] = "f"
+	s[6] = "g"
+    s[7] = "h"
+	s[8] = "i"
+	s[9] = "j"
+    s[10] = "k"
+	s[11] = "l"
 	
+		//set font color
+	/*	col := color.RGBA{0, 0, 0, 255}
+		AddLabel(canvas, 360, 215, "Bharat Sewani",inconsolata.Bold8x16,col)
+		col = color.RGBA{0, 0, 0, 150}
+		AddLabel(canvas, 360, 230, "@bharatsewani199",inconsolata.Regular8x16,col)
+		col = color.RGBA{0, 0, 0, 255}
+		AddLabel(canvas, 310, 270, "No matter how far you have gone on the wrong road,",inconsolata.Bold8x16,col)
+		AddLabel(canvas, 310, 290, "You can still turn around.",inconsolata.Bold8x16,col)
+		col = color.RGBA{27,149,224,255}
+		AddLabel(canvas, 310, 310, "#TuesdayMotivation",inconsolata.Bold8x16,col)
+		col = color.RGBA{0, 0, 0, 150}
+		AddLabel(canvas, 310, 340, "9:00 AM . Jul 31, 2018",inconsolata.Regular8x16,col) */
 
-	//save frame
-	out, err := os.Create("./frame.jpg")
-	if err != nil {
-		fmt.Println(err)
+	//	fmt.Println(reflect.TypeOf(inconsolata.Regular8x16))
+		
+	for i := 0; i < 10; i++ {
+		col := color.RGBA{0, 0, 0, 255}
+		AddLabel(canvas, 360 + i*10, 215, s[i],inconsolata.Bold8x16,col)
+		//save frame
+		s := strconv.Itoa(i)
+		out, err := os.Create("./frame"+s+".jpg")
+		if err != nil {
+			fmt.Println(err)
+		}
+		var opt jpeg.Options
+		opt.Quality = 80
+		jpeg.Encode(out, canvas, &opt) 
 	}
-	var opt jpeg.Options
-	opt.Quality = 80
-	jpeg.Encode(out, canvas, &opt) 
 
 }
 
