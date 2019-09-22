@@ -180,49 +180,68 @@ func CreateImages() {
     draw.Draw(canvas, b, backGroundd, image.ZP, draw.Src)
     draw.Draw(canvas, roundpicd.Bounds().Add(offset), roundpicd, image.ZP, draw.Over)
 
-	//Write text on Image	
-
-	s := make([]string, 12)
-    s[0] = "a"
-    s[1] = "b"
-	s[2] = "c"
-	s[3] = "d"
-    s[4] = "e"
-	s[5] = "f"
-	s[6] = "g"
-    s[7] = "h"
-	s[8] = "i"
-	s[9] = "j"
-    s[10] = "k"
-	s[11] = "l"
-	
-		//set font color
-	/*	col := color.RGBA{0, 0, 0, 255}
+	//Write text on Image		
+		//set font Dark Black and write full name
+		col := color.RGBA{0, 0, 0, 255}
 		AddLabel(canvas, 360, 215, "Bharat Sewani",inconsolata.Bold8x16,col)
+		//set font color gray and write username
 		col = color.RGBA{0, 0, 0, 150}
 		AddLabel(canvas, 360, 230, "@bharatsewani199",inconsolata.Regular8x16,col)
-		col = color.RGBA{0, 0, 0, 255}
-		AddLabel(canvas, 310, 270, "No matter how far you have gone on the wrong road,",inconsolata.Bold8x16,col)
-		AddLabel(canvas, 310, 290, "You can still turn around.",inconsolata.Bold8x16,col)
+		//set font color Blue and write HashTags
 		col = color.RGBA{27,149,224,255}
 		AddLabel(canvas, 310, 310, "#TuesdayMotivation",inconsolata.Bold8x16,col)
+		//set font color gray and write HashTags
 		col = color.RGBA{0, 0, 0, 150}
-		AddLabel(canvas, 310, 340, "9:00 AM . Jul 31, 2018",inconsolata.Regular8x16,col) */
+		AddLabel(canvas, 310, 340, "9:00 AM . Jul 31, 2018",inconsolata.Regular8x16,col) 
 
 	//	fmt.Println(reflect.TypeOf(inconsolata.Regular8x16))
 		
-	for i := 0; i < 10; i++ {
-		col := color.RGBA{0, 0, 0, 255}
-		AddLabel(canvas, 360 + i*10, 215, s[i],inconsolata.Bold8x16,col)
-		//save frame
-		s := strconv.Itoa(i)
-		out, err := os.Create("./frame"+s+".jpg")
+	/*	
+		AddLabel(canvas, 310, 270, "No matter how far you have gone on the wrong road,",inconsolata.Bold8x16,col)
+		AddLabel(canvas, 310, 290, "You can still turn around.",inconsolata.Bold8x16,col)
+	*/
+
+	out, err := os.Create("./frames/frame.jpg")
 		if err != nil {
 			fmt.Println(err)
 		}
 		var opt jpeg.Options
 		opt.Quality = 80
 		jpeg.Encode(out, canvas, &opt) 
+
+	//Set tweet text color and write character by character one on frame.
+	col = color.RGBA{0, 0, 0, 255}
+	h := 270
+	str := "No matter how far you have gone on the wrong road,"	
+	str1 := "You can still turn around."
+	str2 := "You can still turn around."
+	str3 := "No matter how far you have gone on the wrong road,"
+	str4 := "No matter how far you have gone on the wrong road,"
+	str5 := "No matter how far you have gone on the wrong road,"
+	strarr := make([]string, 6)
+	strarr[0] = str
+	strarr[1] = str1
+	strarr[2] = str2
+	strarr[3] = str3
+	strarr[4] = str4
+	strarr[5] = str5
+	var count int = 0
+	for i :=0; i<len(strarr); i++ {
+		for k, v := range strarr[i] {	
+		//	fmt.Println(string(v))
+		AddLabel(canvas, 310 + k*8, h, string(v) ,inconsolata.Bold8x16,col)	
+		//save frame
+			s := strconv.Itoa(count)
+			out, err := os.Create("./frames/frame"+s+".jpg")
+			if err != nil {
+				fmt.Println(err)
+			}
+			var opt jpeg.Options
+			opt.Quality = 80
+			jpeg.Encode(out, canvas, &opt) 
+			count++
+		}	
+		h = h + 20	
 	}
 
 }
