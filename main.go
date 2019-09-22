@@ -20,17 +20,20 @@ import (
 	"golang.org/x/image/font/basicfont"
     "golang.org/x/image/font/inconsolata"
 	"golang.org/x/image/math/fixed"
+	"github.com/icza/mjpeg"
 	"bytes"
-//	"reflect"
+	"io/ioutil"
+	"io"
+	"net/http"
 )
 
 //TwitterLogin is used for authentication purpose
 func TwitterLogin() *anaconda.TwitterApi {
 	//API Key and Access Token
-	consumerkey := "rQhHlYBINp4AdteYlA2KdOVZL"
-	consumersecret := "5HBHhezNwUQkfNvKIlXnhAgt6DSfqbLS4q6c9polwQEDcCd61P"
-	accesstoken := "3181658732-NZn8b404vANoRJJ6gzdA3QXHLGEGfyGoqEQrszD"
-	accesstokensecret := "YApNM25YmLr6QjCd7fBYY4BEvE49fankFhZS293E0cYvZ"
+	consumerkey := ""
+	consumersecret := ""
+	accesstoken := ""
+	accesstokensecret := ""
 
 	//Authentication With Twitter
 	anaconda.SetConsumerKey(consumerkey)
@@ -145,10 +148,31 @@ func SplitSubN(s string, n int) []string {
 
 
 //CreateImages create images for video
-func CreateImages() {
+func CreateImages(tweet anaconda.Tweet) {
+
+	//Get the profile pic from Twitter	
+    response, e := http.Get(tweet.User.ProfileImageUrlHttps)
+    if e != nil {
+        log.Fatal(e)
+    }
+    defer response.Body.Close()
+
+    //create a blank image
+    file, err := os.Create("./profilepic.jpg")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer file.Close()
+
+    // Use io.Copy to just dump the response body to the file. 
+    _, err = io.Copy(file, response.Body)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println("Success!")
 
 	//Resize user profile pic to 50 X 50
-	src, err := imaging.Open("1.jpg")
+	src, err := imaging.Open("profilepic.jpg")
 	if err != nil{
 	  log.Fatal("Error %v", err)
 	}
@@ -204,7 +228,7 @@ func CreateImages() {
 
 	//Write text on Image	
 	//calculate hashtagheight(Y) and datetimeheight(Y)
-	text := "The result was that the daughter left in tears."
+	text := tweet.Text
 	hashtagheight := 0
 	datetimeheight := 0 
 	 if len(text) <= 70 {
@@ -223,25 +247,36 @@ func CreateImages() {
 
 		//set font Dark Black and write full name
 		col := color.RGBA{0, 0, 0, 255}
-		AddLabel(canvas, 360, 215, "Bharat Sewani",inconsolata.Bold8x16,col)
+		AddLabel(canvas, 360, 215, tweet.User.Name,inconsolata.Bold8x16,col)
 		//set font color gray and write username
 		col = color.RGBA{0, 0, 0, 150}
-		AddLabel(canvas, 360, 230, "@bharatsewani199",inconsolata.Regular8x16,col)
+		AddLabel(canvas, 360, 230, "@"+tweet.User.ScreenName,inconsolata.Regular8x16,col)
 		//set font color Blue and write HashTags
 		col = color.RGBA{27,149,224,255}
-		AddLabel(canvas, 310, hashtagheight, "#TuesdayMotivation",inconsolata.Bold8x16,col)
+		hashtags := ""
+		for _, ht := range tweet.Entities.Hashtags {
+			hashtags += string("#") + ht.Text + ","
+		}	
+		if last := len(hashtags) - 1; last >= 0 && hashtags[last] == ',' {
+			hashtags = hashtags[:last]
+		}
+		fmt.Println("Hashtags ==>>",hashtags)
+		
+	//	fmt.Printf("%+v",tweet.Entities.Hashtags)
+		AddLabel(canvas, 310, hashtagheight, hashtags ,inconsolata.Bold8x16,col)
+	
 		//set font color gray and write HashTags
 		col = color.RGBA{0, 0, 0, 150}
-		AddLabel(canvas, 310, datetimeheight, "9:00 AM . Jul 31, 2018",inconsolata.Regular8x16,col) 
+		trimdate := strings.Replace(tweet.CreatedAt, "+0000", "", -1)
 
-	//	fmt.Println(reflect.TypeOf(inconsolata.Regular8x16))
-		
-	/*	
-		AddLabel(canvas, 310, 270, "No matter how far you have gone on the wrong road,",inconsolata.Bold8x16,col)
-		AddLabel(canvas, 310, 290, "You can still turn around.",inconsolata.Bold8x16,col)
-	*/
+		AddLabel(canvas, 310, datetimeheight,trimdate,inconsolata.Regular8x16,col) 
 
-	out, err := os.Create("./frames/frame.jpg")
+		//Remove old frames
+		os.Chmod("./frames/",0777)
+		os.RemoveAll("./frames/")
+		os.MkdirAll("./frames/",0777)
+
+		out, err := os.Create("./frames/frame.jpg")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -255,9 +290,6 @@ func CreateImages() {
 	h := 270
 
 	strarr := SplitSubN(text, 70)
-//	for i, sub := range strarr {
-//		fmt.Println(i, sub)
-//	}
 
 	var count int = 0
 	for i :=0; i<len(strarr); i++ {
@@ -277,19 +309,45 @@ func CreateImages() {
 		}	
 		h = h + 20	
 	}
+}
 
+
+//CreateVideo combine all images and create video.
+func CreateVideo() {
+	checkErr := func(err error) {
+		if err != nil {
+			panic(err)
+		}
+	}
+	
+	// Video size: 1080x720 pixels, FPS: 15
+	aw, err := mjpeg.New("test.avi", 1080, 720, 15)
+	checkErr(err)
+	
+	// Create a movie from images: 1.jpg, 2.jpg, ..., nth.jpg
+	data, err := ioutil.ReadFile("./frames/frame.jpg")
+	checkErr(err)
+	checkErr(aw.AddFrame(data))
+
+	//get total number of frames
+	totalframes,_ := ioutil.ReadDir("./frames")
+	tfcount := len(totalframes)-2
+	for i := 0; i <= tfcount; i++ {
+		data, err = ioutil.ReadFile(fmt.Sprintf("./frames/frame%d.jpg", i))
+		checkErr(err)
+		checkErr(aw.AddFrame(data))
+	}
+	
+	checkErr(aw.Close())
 }
 
 func main() {
-	//	api := TwitterLogin()
-	//	tweeturl := GetTweetURL()
-	//	tweet := GetTweet(tweeturl, api)
-	//fmt.Println(tweet.Text)
-
-	text := "My Name is Bharat and I am a Programmer."
-	fmt.Println(text)
-
-	CreateImages()
+	api := TwitterLogin()
+	tweeturl := GetTweetURL()
+	tweet := GetTweet(tweeturl, api)
+	fmt.Println(tweet.Text)
+	CreateImages(tweet)
 	fmt.Println("image created")
-
+	CreateVideo()
+	fmt.Println("Video Created")
 }
