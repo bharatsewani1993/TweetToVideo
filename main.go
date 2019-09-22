@@ -20,6 +20,7 @@ import (
 	"golang.org/x/image/font/basicfont"
     "golang.org/x/image/font/inconsolata"
 	"golang.org/x/image/math/fixed"
+	"bytes"
 //	"reflect"
 )
 
@@ -122,6 +123,27 @@ func AddLabel(img *image.RGBA, x, y int, label string, fontface *basicfont.Face,
     d.DrawString(label)
 }
 
+//SplitSubN splits Tweet text to 70 characters per line.
+func SplitSubN(s string, n int) []string {
+	sub := ""
+	subs := []string{}
+
+	runes := bytes.Runes([]byte(s))
+	l := len(runes)
+	for i, r := range runes {
+		sub = sub + string(r)
+		if (i + 1) % n == 0 {
+			subs = append(subs, sub)
+			sub = ""
+		} else if (i + 1) == l {
+			subs = append(subs, sub)
+		}
+	}
+
+	return subs
+}
+
+
 //CreateImages create images for video
 func CreateImages() {
 
@@ -180,7 +202,25 @@ func CreateImages() {
     draw.Draw(canvas, b, backGroundd, image.ZP, draw.Src)
     draw.Draw(canvas, roundpicd.Bounds().Add(offset), roundpicd, image.ZP, draw.Over)
 
-	//Write text on Image		
+	//Write text on Image	
+	//calculate hashtagheight(Y) and datetimeheight(Y)
+	text := "The result was that the daughter left in tears."
+	hashtagheight := 0
+	datetimeheight := 0 
+	 if len(text) <= 70 {
+		hashtagheight = 290
+		datetimeheight = 320 
+	} else if len(text) > 70 && len(text) <= 140 {
+		hashtagheight = 310
+		datetimeheight = 340 
+	} else if len(text) > 140 && len(text) <= 210 {
+		hashtagheight = 330
+		datetimeheight = 360 
+	} else {
+		hashtagheight = 350
+		datetimeheight = 380 
+	}
+
 		//set font Dark Black and write full name
 		col := color.RGBA{0, 0, 0, 255}
 		AddLabel(canvas, 360, 215, "Bharat Sewani",inconsolata.Bold8x16,col)
@@ -189,10 +229,10 @@ func CreateImages() {
 		AddLabel(canvas, 360, 230, "@bharatsewani199",inconsolata.Regular8x16,col)
 		//set font color Blue and write HashTags
 		col = color.RGBA{27,149,224,255}
-		AddLabel(canvas, 310, 310, "#TuesdayMotivation",inconsolata.Bold8x16,col)
+		AddLabel(canvas, 310, hashtagheight, "#TuesdayMotivation",inconsolata.Bold8x16,col)
 		//set font color gray and write HashTags
 		col = color.RGBA{0, 0, 0, 150}
-		AddLabel(canvas, 310, 340, "9:00 AM . Jul 31, 2018",inconsolata.Regular8x16,col) 
+		AddLabel(canvas, 310, datetimeheight, "9:00 AM . Jul 31, 2018",inconsolata.Regular8x16,col) 
 
 	//	fmt.Println(reflect.TypeOf(inconsolata.Regular8x16))
 		
@@ -211,20 +251,14 @@ func CreateImages() {
 
 	//Set tweet text color and write character by character one on frame.
 	col = color.RGBA{0, 0, 0, 255}
+	//define default height(Y) for tweet text
 	h := 270
-	str := "No matter how far you have gone on the wrong road,"	
-	str1 := "You can still turn around."
-	str2 := "You can still turn around."
-	str3 := "No matter how far you have gone on the wrong road,"
-	str4 := "No matter how far you have gone on the wrong road,"
-	str5 := "No matter how far you have gone on the wrong road,"
-	strarr := make([]string, 6)
-	strarr[0] = str
-	strarr[1] = str1
-	strarr[2] = str2
-	strarr[3] = str3
-	strarr[4] = str4
-	strarr[5] = str5
+
+	strarr := SplitSubN(text, 70)
+//	for i, sub := range strarr {
+//		fmt.Println(i, sub)
+//	}
+
 	var count int = 0
 	for i :=0; i<len(strarr); i++ {
 		for k, v := range strarr[i] {	
